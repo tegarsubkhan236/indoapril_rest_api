@@ -1,0 +1,42 @@
+package cr_team
+
+import (
+	"example/internal/pkg/entities"
+)
+
+type Service interface {
+	Insert(team *entities.CrTeam) (*entities.CrTeam, error)
+	FetchAll(ID uint, filer *entities.CrTeam, page, limit int) (*[]entities.CrTeam, int64, error)
+	Update(ID uint, team *entities.CrTeam) (*entities.CrTeam, error)
+	Delete(ID uint) error
+}
+
+type service struct {
+	repository Repository
+}
+
+func NewService(r Repository) Service {
+	return &service{
+		repository: r,
+	}
+}
+
+func (s service) Insert(team *entities.CrTeam) (*entities.CrTeam, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s service) FetchAll(ID uint, filer *entities.CrTeam, page, limit int) (*[]entities.CrTeam, int64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s service) Update(ID uint, team *entities.CrTeam) (*entities.CrTeam, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s service) Delete(ID uint) error {
+	//TODO implement me
+	panic("implement me")
+}
