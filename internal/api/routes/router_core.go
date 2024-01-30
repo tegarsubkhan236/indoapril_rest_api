@@ -3,7 +3,7 @@ package routes
 import (
 	"example/internal/api/handlers"
 	"example/internal/api/middleware"
-	"example/internal/api/util/constant"
+	"example/internal/api/types/permissions"
 	"example/internal/pkg/models/cr_permission"
 	"example/internal/pkg/models/cr_role"
 	"example/internal/pkg/models/cr_team"
@@ -19,31 +19,31 @@ func SetupCoreRoutes(
 	crTeamService cr_team.Service,
 ) {
 	permissionRoute := api.Group("/v1/core/permission", middleware.Protected())
-	permissionRoute.Get("/", handlers.GetPermissions(crPermissionService))
-	permissionRoute.Get("/:id", handlers.GetPermission(crPermissionService))
-	permissionRoute.Post("/", handlers.AddPermission(crPermissionService))
-	permissionRoute.Put("/:id", handlers.UpdatePermission(crPermissionService))
-	permissionRoute.Delete("/", handlers.RemovePermission(crPermissionService))
+	permissionRoute.Get("/", middleware.Gateway(permissions.READ_PERMISSION), handlers.HandleGetPermissions(crPermissionService))
+	permissionRoute.Get("/:id", middleware.Gateway(permissions.READ_PERMISSION), handlers.HandleGetPermission(crPermissionService))
+	permissionRoute.Post("/", middleware.Gateway(permissions.CREATE_PERMISSION), handlers.HandleAddPermission(crPermissionService))
+	permissionRoute.Put("/:id", middleware.Gateway(permissions.UPDATE_PERMISSION), handlers.HandleUpdatePermission(crPermissionService))
+	permissionRoute.Delete("/", middleware.Gateway(permissions.DELETE_PERMISSION), handlers.HandleRemovePermission(crPermissionService))
 
 	roleRoute := api.Group("/v1/core/role", middleware.Protected())
-	roleRoute.Get("/", handlers.GetRoles(crRoleService))
-	roleRoute.Get("/:id", handlers.GetRole(crRoleService))
-	roleRoute.Post("/", handlers.AddRole(crRoleService))
-	roleRoute.Put("/:id", handlers.UpdateRole(crRoleService))
-	roleRoute.Delete("/", handlers.RemoveRole(crRoleService))
+	roleRoute.Get("/", middleware.Gateway(permissions.READ_ROLE), handlers.HandleGetRoles(crRoleService))
+	roleRoute.Get("/:id", middleware.Gateway(permissions.READ_ROLE), handlers.HandleGetRole(crRoleService))
+	roleRoute.Post("/", middleware.Gateway(permissions.CREATE_ROLE), handlers.HandleAddRole(crRoleService))
+	roleRoute.Put("/:id", middleware.Gateway(permissions.UPDATE_ROLE), handlers.HandleUpdateRole(crRoleService))
+	roleRoute.Delete("/", middleware.Gateway(permissions.DELETE_ROLE), handlers.HandleRemoveRole(crRoleService))
 
 	userRoute := api.Group("/v1/core/user", middleware.Protected())
-	userRoute.Get("/", middleware.Gateway(constant.READ_USER), handlers.GetUsers(crUserService))
-	userRoute.Get("/:id", middleware.Gateway(constant.READ_USER), handlers.GetUser(crUserService))
-	userRoute.Post("/", middleware.Gateway(constant.CREATE_USER), handlers.AddUser(crUserService))
-	userRoute.Put("/:id", middleware.Gateway(constant.UPDATE_USER), handlers.UpdateUser(crUserService))
-	userRoute.Put("/reset_password/:id", middleware.Gateway(constant.UPDATE_USER), handlers.UpdateUserPassword(crUserService))
-	userRoute.Delete("/", middleware.Gateway(constant.DELETE_USER), handlers.RemoveUser(crUserService))
+	userRoute.Get("/", middleware.Gateway(permissions.READ_USER), handlers.HandleGetUsers(crUserService))
+	userRoute.Get("/:id", middleware.Gateway(permissions.READ_USER), handlers.HandleGetUser(crUserService))
+	userRoute.Post("/", middleware.Gateway(permissions.CREATE_USER), handlers.HandleAddUser(crUserService))
+	userRoute.Put("/:id", middleware.Gateway(permissions.UPDATE_USER), handlers.HandleUpdateUser(crUserService))
+	userRoute.Put("/reset_password/:id", middleware.Gateway(permissions.UPDATE_USER), handlers.HandleUpdateUserPassword(crUserService))
+	userRoute.Delete("/", middleware.Gateway(permissions.DELETE_USER), handlers.HandleRemoveUser(crUserService))
 
-	//teamRoute := api.Group("/v1/core/team", middleware.Protected())
-	//teamRoute.Get("/", handlers.GetTeams(crTeamService))
-	//teamRoute.Get("/:id", handlers.GetTeam(crTeamService))
-	//teamRoute.Post("/", handlers.AddTeam(crTeamService))
-	//teamRoute.Put("/:id", handlers.Update(crTeamService))
-	//teamRoute.Delete("/", handlers.RemoveTeam(crTeamService))
+	teamRoute := api.Group("/v1/core/team", middleware.Protected())
+	teamRoute.Get("/", middleware.Gateway(permissions.READ_TEAM), handlers.HandleGetTeams(crTeamService))
+	teamRoute.Get("/:id", middleware.Gateway(permissions.READ_TEAM), handlers.HandleGetTeam(crTeamService))
+	teamRoute.Post("/", middleware.Gateway(permissions.CREATE_TEAM), handlers.HandleAddTeam(crTeamService))
+	teamRoute.Put("/:id", middleware.Gateway(permissions.UPDATE_TEAM), handlers.HandleUpdateTeam(crTeamService))
+	teamRoute.Delete("/", middleware.Gateway(permissions.DELETE_TEAM), handlers.HandleRemoveTeam(crTeamService))
 }

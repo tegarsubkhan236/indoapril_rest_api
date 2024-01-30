@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetProductCategories(service ms_product_category.Service) fiber.Handler {
+func HandleGetProductCategories(service ms_product_category.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `q:"page" default:"1"`
@@ -31,7 +31,7 @@ func GetProductCategories(service ms_product_category.Service) fiber.Handler {
 	}
 }
 
-func GetProductCategory(service ms_product_category.Service) fiber.Handler {
+func HandleGetProductCategory(service ms_product_category.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -50,7 +50,7 @@ func GetProductCategory(service ms_product_category.Service) fiber.Handler {
 	}
 }
 
-func CreateProductCategory(service ms_product_category.Service) fiber.Handler {
+func HandleAddProductCategory(service ms_product_category.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req entities.MsProductCategory
 		if err := c.BodyParser(&req); err != nil {
@@ -69,7 +69,7 @@ func CreateProductCategory(service ms_product_category.Service) fiber.Handler {
 	}
 }
 
-func UpdateProductCategory(service ms_product_category.Service) fiber.Handler {
+func HandleUpdateProductCategory(service ms_product_category.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -93,7 +93,7 @@ func UpdateProductCategory(service ms_product_category.Service) fiber.Handler {
 	}
 }
 
-func DeleteProductCategory(service ms_product_category.Service) fiber.Handler {
+func HandleRemoveProductCategory(service ms_product_category.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {

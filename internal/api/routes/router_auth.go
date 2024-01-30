@@ -9,11 +9,10 @@ import (
 
 func SetupAuthRoutes(api fiber.Router, crAuthService cr_user.Service) {
 	authRoute := api.Group("/v1/auth")
-	authRoute.Post("/login", handlers.Login(crAuthService))
-	authRoute.Post("/register", handlers.AddUser(crAuthService))
+	authRoute.Post("/login", handlers.HandleLogin(crAuthService))
+	authRoute.Post("/register", handlers.HandleAddUser(crAuthService))
 
 	profileRoute := api.Group("/v1/profile", middleware.Protected())
-	profileRoute.Get("/", handlers.Me(crAuthService))
-	profileRoute.Put("/update_info", handlers.UpdateMe(crAuthService))
-	profileRoute.Put("/update_password", handlers.UpdatePasswordMe(crAuthService))
+	profileRoute.Get("/", handlers.HandleMe(crAuthService))
+	profileRoute.Put("/update", handlers.HandleUpdateMe(crAuthService))
 }

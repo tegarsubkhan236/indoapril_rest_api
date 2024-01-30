@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetSuppliers(service ms_supplier.Service) fiber.Handler {
+func HandleGetSuppliers(service ms_supplier.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int    `query:"page" default:"1"`
@@ -32,7 +32,7 @@ func GetSuppliers(service ms_supplier.Service) fiber.Handler {
 	}
 }
 
-func GetSupplier(service ms_supplier.Service) fiber.Handler {
+func HandleGetSupplier(service ms_supplier.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -51,7 +51,7 @@ func GetSupplier(service ms_supplier.Service) fiber.Handler {
 	}
 }
 
-func CreateSupplier(service ms_supplier.Service) fiber.Handler {
+func HandleAddSupplier(service ms_supplier.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req []entities.MsSupplier
 		if err := c.BodyParser(&req); err != nil {
@@ -70,7 +70,7 @@ func CreateSupplier(service ms_supplier.Service) fiber.Handler {
 	}
 }
 
-func UpdateSupplier(service ms_supplier.Service) fiber.Handler {
+func HandleUpdateSupplier(service ms_supplier.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -95,7 +95,7 @@ func UpdateSupplier(service ms_supplier.Service) fiber.Handler {
 	}
 }
 
-func DeleteSupplier(service ms_supplier.Service) fiber.Handler {
+func HandleRemoveSupplier(service ms_supplier.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req struct {
 			ID []uint `query:"id"`

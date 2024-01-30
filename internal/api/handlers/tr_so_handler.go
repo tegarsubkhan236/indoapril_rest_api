@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetSalesOrders(service tr_sales_order.Service) fiber.Handler {
+func HandleGetSalesOrders(service tr_sales_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `query:"page" default:"1"`
@@ -31,7 +31,7 @@ func GetSalesOrders(service tr_sales_order.Service) fiber.Handler {
 	}
 }
 
-func GetSalesOrder(service tr_sales_order.Service) fiber.Handler {
+func HandleGetSalesOrder(service tr_sales_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -50,7 +50,7 @@ func GetSalesOrder(service tr_sales_order.Service) fiber.Handler {
 	}
 }
 
-func CreateSalesOrder(service tr_sales_order.Service) fiber.Handler {
+func HandleAddSalesOrder(service tr_sales_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req entities.TrSalesOrderReq
 		if err := c.BodyParser(&req); err != nil {

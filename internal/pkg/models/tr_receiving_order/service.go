@@ -7,7 +7,9 @@ import (
 	"example/internal/pkg/models/ms_stock"
 	"example/internal/pkg/models/tr_back_order"
 	"example/internal/pkg/models/tr_purchase_order"
-	"example/internal/pkg/util"
+	"example/internal/pkg/types/stock_status"
+	types2 "example/internal/pkg/types/transaction_status"
+	"example/internal/pkg/util/counter"
 	"fmt"
 	"strings"
 	"time"
@@ -61,12 +63,25 @@ func (s service) Create(req entities.TrReceivingOrderReq) (map[string]interface{
 }
 
 func (s service) createFromPO(req entities.TrReceivingOrderReq) (map[string]interface{}, error) {
+	tx := s.roRepo.BeginTransaction()
+	defer func() {
+		if r := recover(); r != nil {
+			if tx.Error == nil {
+				tx.Rollback()
+			}
+		} else if tx.Error == nil {
+			if err := tx.Commit().Error; err != nil {
+				tx.Rollback()
+			}
+		}
+	}()
+
 	poItem, err := s.poRepo.ReadDetail(req.PoCode)
 	if err != nil {
 		return nil, err
 	}
 
-	if poItem.Status != util.PendingOrder {
+	if poItem.Status != types2.PENDING_ORDER {
 		return nil, errors.New("po has been processed")
 	}
 
@@ -81,7 +96,7 @@ func (s service) createFromPO(req entities.TrReceivingOrderReq) (map[string]inte
 
 	req.PoID = poItem.ID
 	req.Remarks = poItem.Remarks
-	req.Amount, err = util.CountAmount(poItem.Tax, poItem.Disc, prices, quantities)
+	req.Amount, err = counter.CountAmount(poItem.Tax, poItem.Disc, prices, quantities)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +119,12 @@ func (s service) createFromPO(req entities.TrReceivingOrderReq) (map[string]inte
 			return nil, err
 		}
 
-		if err = s.poRepo.Update(poItem.ID, entities.TrPurchaseOrder{Status: util.PartialReceive}); err != nil {
+		if err = s.poRepo.Update(poItem.ID, entities.TrPurchaseOrder{Status: types2.PARTIAL_RECEIVE}); err != nil {
 			return nil, err
 		}
 
-		message := fmt.Sprintf("purchase order with PO Code %s has been partially received and here is the new BO Code %s", poCode, boCode)
 		result := map[string]interface{}{
-			"message": message,
+			"message": fmt.Sprintf("purchase order with PO Code %s has been partially received and here is the new BO Code %s", poCode, boCode),
 			"po_code": poCode,
 			"bo_code": boCode,
 		}
@@ -119,13 +133,16 @@ func (s service) createFromPO(req entities.TrReceivingOrderReq) (map[string]inte
 	}
 
 	// Update Status PO
-	if err = s.poRepo.Update(poItem.ID, entities.TrPurchaseOrder{Status: util.FullyReceive}); err != nil {
+	if err = s.poRepo.Update(poItem.ID, entities.TrPurchaseOrder{Status: types2.FULLY_RECEIVE}); err != nil {
 		return nil, err
 	}
 
-	message := fmt.Sprintf("purchase order with PO code %s has been fully received", poItem.PoCode)
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
 	result := map[string]interface{}{
-		"message": message,
+		"message": fmt.Sprintf("purchase order with PO code %s has been fully received", poItem.PoCode),
 		"po_code": poItem.PoCode,
 		"bo_code": "",
 	}
@@ -134,13 +151,26 @@ func (s service) createFromPO(req entities.TrReceivingOrderReq) (map[string]inte
 }
 
 func (s service) createFromBO(req entities.TrReceivingOrderReq) (map[string]interface{}, error) {
+	tx := s.roRepo.BeginTransaction()
+	defer func() {
+		if r := recover(); r != nil {
+			if tx.Error == nil {
+				tx.Rollback()
+			}
+		} else if tx.Error == nil {
+			if err := tx.Commit().Error; err != nil {
+				tx.Rollback()
+			}
+		}
+	}()
+
 	boItem, err := s.boRepo.ReadDetail(req.PoCode, req.BoCode)
 	if err != nil {
 		return nil, err
 	}
 
-	if boItem.Status != util.PendingOrder {
-		return nil, errors.New("po has been processed")
+	if boItem.Status != types2.PENDING_ORDER {
+		return nil, errors.New("bo has been processed")
 	}
 
 	if len(boItem.TrBackOrderProducts) != len(req.ReceivingOrderProducts) {
@@ -155,7 +185,7 @@ func (s service) createFromBO(req entities.TrReceivingOrderReq) (map[string]inte
 	req.PoID = boItem.TrPurchaseOrderID
 	req.BoID = &boItem.ID
 	req.Remarks = boItem.Remarks
-	req.Amount, err = util.CountAmount(boItem.Tax, boItem.Disc, prices, quantities)
+	req.Amount, err = counter.CountAmount(boItem.Tax, boItem.Disc, prices, quantities)
 	if err != nil {
 		return nil, err
 	}
@@ -178,13 +208,12 @@ func (s service) createFromBO(req entities.TrReceivingOrderReq) (map[string]inte
 			return nil, err
 		}
 
-		if err = s.boRepo.Update(boItem.ID, entities.TrBackOrder{Status: util.PartialReceive}); err != nil {
+		if err = s.boRepo.Update(boItem.ID, entities.TrBackOrder{Status: types2.PARTIAL_RECEIVE}); err != nil {
 			return nil, err
 		}
 
-		message := fmt.Sprintf("back order with PO Code %s has been partially received and here is the new BO Code %s", poCode, boCode)
 		result := map[string]interface{}{
-			"message": message,
+			"message": fmt.Sprintf("back order with PO Code %s has been partially received and here is the new BO Code %s", poCode, boCode),
 			"po_code": poCode,
 			"bo_code": boCode,
 		}
@@ -193,13 +222,12 @@ func (s service) createFromBO(req entities.TrReceivingOrderReq) (map[string]inte
 	}
 
 	// Update Status BO
-	if err = s.boRepo.Update(boItem.ID, entities.TrBackOrder{Status: util.FullyReceive}); err != nil {
+	if err = s.boRepo.Update(boItem.ID, entities.TrBackOrder{Status: types2.FULLY_RECEIVE}); err != nil {
 		return nil, err
 	}
 
-	message := fmt.Sprintf("back order with BO code %s has been fully received", boItem.BoCode)
 	result := map[string]interface{}{
-		"message": message,
+		"message": fmt.Sprintf("back order with BO code %s has been fully received", boItem.BoCode),
 		"po_code": boItem.TrPurchaseOrder.PoCode,
 		"bo_code": boItem.BoCode,
 	}
@@ -277,7 +305,7 @@ func (s service) processRemainingProducts(po entities.TrPurchaseOrder, remaining
 		boProductQuantities = append(boProductQuantities, val["Quantity"].(int))
 	}
 
-	amount, err := util.CountAmount(po.Tax, po.Disc, boProductPrices, boProductQuantities)
+	amount, err := counter.CountAmount(po.Tax, po.Disc, boProductPrices, boProductQuantities)
 	if err != nil {
 		return "", "", err
 	}
@@ -288,7 +316,7 @@ func (s service) processRemainingProducts(po entities.TrPurchaseOrder, remaining
 		Tax:                 po.Tax,
 		Amount:              amount,
 		Remarks:             po.Remarks,
-		Status:              util.PendingOrder,
+		Status:              types2.PENDING_ORDER,
 		TrPurchaseOrderID:   po.ID,
 		MsSupplierID:        po.MsSupplierID,
 		TrBackOrderProducts: boProducts,
@@ -303,7 +331,7 @@ func (s service) processRemainingProducts(po entities.TrPurchaseOrder, remaining
 
 func (s service) incrementStockAndPrice(products []entities.TrReceivingOrderProductReq, userID uint) error {
 	for _, val := range products {
-		if err := s.stockRepo.CreateStock(util.Increment, userID, val.ProductID, val.Quantity); err != nil {
+		if err := s.stockRepo.CreateStock(stock_status.INCREMENT, userID, val.ProductID, val.Quantity); err != nil {
 			return err
 		}
 

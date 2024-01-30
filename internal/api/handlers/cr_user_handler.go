@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-func GetUsers(service cr_user.Service) fiber.Handler {
+func HandleGetUsers(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `q:"page" default:"1"`
@@ -34,7 +34,7 @@ func GetUsers(service cr_user.Service) fiber.Handler {
 	}
 }
 
-func GetUser(service cr_user.Service) fiber.Handler {
+func HandleGetUser(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -53,7 +53,7 @@ func GetUser(service cr_user.Service) fiber.Handler {
 	}
 }
 
-func AddUser(service cr_user.Service) fiber.Handler {
+func HandleAddUser(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req entities.CrUser
 		if err := c.BodyParser(&req); err != nil {
@@ -72,7 +72,7 @@ func AddUser(service cr_user.Service) fiber.Handler {
 	}
 }
 
-func UpdateUser(service cr_user.Service) fiber.Handler {
+func HandleUpdateUser(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -112,7 +112,7 @@ func UpdateUser(service cr_user.Service) fiber.Handler {
 	}
 }
 
-func UpdateUserPassword(service cr_user.Service) fiber.Handler {
+func HandleUpdateUserPassword(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -146,7 +146,7 @@ func UpdateUserPassword(service cr_user.Service) fiber.Handler {
 	}
 }
 
-func RemoveUser(service cr_user.Service) fiber.Handler {
+func HandleRemoveUser(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var batchQuery struct {
 			ID []uint `q:"id"`

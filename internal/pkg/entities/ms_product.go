@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"example/internal/pkg/util"
+	"example/internal/pkg/types/stock_status"
 	"fmt"
 	"gorm.io/gorm"
 	"time"
@@ -76,7 +76,7 @@ func (r MsProductReq) ToModel() MsProduct {
 			CoreUserID: r.UserID,
 			Quantity:   0,
 			Total:      0,
-			Type:       util.InitialStock,
+			Type:       stock_status.INITIAL_STOCK,
 		},
 	}
 	return item

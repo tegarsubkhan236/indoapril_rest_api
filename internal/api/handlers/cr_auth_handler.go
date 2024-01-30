@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"example/internal/api/util/response"
 	"example/internal/api/util/upload"
 	"example/internal/pkg/entities"
@@ -11,8 +10,8 @@ import (
 	"path/filepath"
 )
 
-// Login authenticate user require username / email and password
-func Login(service cr_user.Service) fiber.Handler {
+// HandleLogin authenticate user require username / email and password
+func HandleLogin(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var loginInput struct {
 			Identity string `json:"identity"`
@@ -34,10 +33,22 @@ func Login(service cr_user.Service) fiber.Handler {
 	}
 }
 
-// Me read user login info
-func Me(service cr_user.Service) fiber.Handler {
+// HandleLogout invalidate login token
+func HandleLogout(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		me, err := service.FetchProfile()
+		return nil
+	}
+}
+
+// HandleMe read user login info
+func HandleMe(service cr_user.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user := c.Locals("user")
+		if user == nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+
+		me, err := service.FetchProfile(user)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return c.JSON(response.ErrorResponse(err))
@@ -48,13 +59,27 @@ func Me(service cr_user.Service) fiber.Handler {
 	}
 }
 
-// UpdateMe update user login info
-func UpdateMe(service cr_user.Service) fiber.Handler {
+// HandleUpdateMe update user login info
+func HandleUpdateMe(service cr_user.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req entities.CrUser
+		user := c.Locals("user")
+		if user == nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+
+		var req struct {
+			Payload         entities.CrUser `json:"payload"`
+			Password        string          `json:"password"`
+			ConfirmPassword string          `json:"confirm_password"`
+		}
 		if err := c.BodyParser(&req); err != nil {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(response.ErrorResponse(err))
+		}
+
+		if req.Password != req.ConfirmPassword {
+			c.Status(http.StatusBadRequest)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "password not match with confirm password"})
 		}
 
 		file, err := c.FormFile("avatar")
@@ -69,39 +94,10 @@ func UpdateMe(service cr_user.Service) fiber.Handler {
 				c.Status(http.StatusInternalServerError)
 				return c.JSON(response.ErrorResponse(err))
 			}
-			req.Avatar = fileNewPath
+			req.Payload.Avatar = fileNewPath
 		}
 
-		item, err := service.UpdateProfile(&req)
-		if err != nil {
-			c.Status(http.StatusInternalServerError)
-			return c.JSON(response.ErrorResponse(err))
-		}
-
-		c.Status(http.StatusOK)
-		return c.JSON(response.SuccessResponse(item))
-	}
-}
-
-// UpdatePasswordMe update user password login info
-func UpdatePasswordMe(service cr_user.Service) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		var req struct {
-			OldPassword     string `json:"old_password"`
-			NewPassword     string `json:"new_password"`
-			ConfirmPassword string `json:"confirm_password"`
-		}
-		if err := c.BodyParser(&req); err != nil {
-			c.Status(http.StatusBadRequest)
-			return c.JSON(response.ErrorResponse(err))
-		}
-
-		if req.NewPassword != req.ConfirmPassword {
-			c.Status(http.StatusBadRequest)
-			return c.JSON(response.ErrorResponse(errors.New("password confirmation does not match")))
-		}
-
-		item, err := service.UpdateProfilePassword(req.OldPassword, req.NewPassword)
+		item, err := service.UpdateProfile(user, req.Password, &req.Payload)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return c.JSON(response.ErrorResponse(err))

@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetPermissions(service cr_permission.Service) fiber.Handler {
+func HandleGetPermissions(service cr_permission.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `query:"page" default:"1"`
@@ -31,7 +31,7 @@ func GetPermissions(service cr_permission.Service) fiber.Handler {
 	}
 }
 
-func GetPermission(service cr_permission.Service) fiber.Handler {
+func HandleGetPermission(service cr_permission.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -50,7 +50,7 @@ func GetPermission(service cr_permission.Service) fiber.Handler {
 	}
 }
 
-func AddPermission(service cr_permission.Service) fiber.Handler {
+func HandleAddPermission(service cr_permission.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var requestBody entities.CrPermission
 		if err := c.BodyParser(&requestBody); err != nil {
@@ -73,7 +73,7 @@ func AddPermission(service cr_permission.Service) fiber.Handler {
 	}
 }
 
-func UpdatePermission(service cr_permission.Service) fiber.Handler {
+func HandleUpdatePermission(service cr_permission.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -102,7 +102,7 @@ func UpdatePermission(service cr_permission.Service) fiber.Handler {
 	}
 }
 
-func RemovePermission(service cr_permission.Service) fiber.Handler {
+func HandleRemovePermission(service cr_permission.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {

@@ -5,9 +5,10 @@ import (
 )
 
 type Service interface {
-	Insert(team *entities.CrTeam) (*entities.CrTeam, error)
-	FetchAll(ID uint, filer *entities.CrTeam, page, limit int) (*[]entities.CrTeam, int64, error)
-	Update(ID uint, team *entities.CrTeam) (*entities.CrTeam, error)
+	Insert(team *entities.CrTeam) error
+	FetchAll(page, limit int) (*[]entities.CrTeam, int64, error)
+	FetchDetail(ID uint) (*entities.CrTeam, error)
+	Update(ID uint, team *entities.CrTeam) error
 	Delete(ID uint) error
 }
 
@@ -21,17 +22,22 @@ func NewService(r Repository) Service {
 	}
 }
 
-func (s service) Insert(team *entities.CrTeam) (*entities.CrTeam, error) {
+func (s service) Insert(team *entities.CrTeam) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s service) FetchAll(ID uint, filer *entities.CrTeam, page, limit int) (*[]entities.CrTeam, int64, error) {
+func (s service) FetchAll(page, limit int) (*[]entities.CrTeam, int64, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s service) Update(ID uint, team *entities.CrTeam) (*entities.CrTeam, error) {
+func (s service) FetchDetail(ID uint) (*entities.CrTeam, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s service) Update(ID uint, team *entities.CrTeam) error {
 	//TODO implement me
 	panic("implement me")
 }

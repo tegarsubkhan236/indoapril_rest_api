@@ -7,22 +7,20 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"os"
+	"regexp"
 	"time"
 )
 
 type Service interface {
 	AuthenticateUser(identity, password string) (string, error)
-	FetchProfile() (*entities.CrUserResp, error)
-	UpdateProfile(user *entities.CrUser) (*entities.CrUserResp, error)
-	UpdateProfilePassword(oldPassword, newPassword string) (*entities.CrUserResp, error)
-
-	InsertUser(user *entities.CrUser) (*entities.CrUserResp, error)
-	FetchAllUser(page, limit int) (*[]entities.CrUserResp, int64, error)
-	FetchDetailUser(ID uint) (*entities.CrUserResp, error)
-	UpdateUser(ID uint, user *entities.CrUser) (*entities.CrUserResp, error)
-	UpdateUserPassword(ID uint, oldPassword, newPassword string) (*entities.CrUserResp, error)
+	FetchProfile(user interface{}) (*jwt.MapClaims, error)
+	UpdateProfile(user interface{}, password string, payload *entities.CrUser) (*entities.CrUser, error)
+	InsertUser(payload *entities.CrUser) (*entities.CrUser, error)
+	FetchAllUser(page, limit int) (*[]entities.CrUser, int64, error)
+	FetchDetailUser(ID uint) (*entities.CrUser, error)
+	UpdateUser(ID uint, payload *entities.CrUser) (*entities.CrUser, error)
+	UpdateUserPassword(ID uint, oldPassword, newPassword string) (*entities.CrUser, error)
 	DeleteUser(ID []uint) error
-
 	checkPasswordHash(password, hash string) bool
 	hashPassword(password string) (string, error)
 }
@@ -37,35 +35,18 @@ func NewService(r Repository) Service {
 	}
 }
 
-func (s service) FetchProfile() (*entities.CrUserResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s service) UpdateProfile(user *entities.CrUser) (*entities.CrUserResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s service) UpdateProfilePassword(oldPassword, newPassword string) (*entities.CrUserResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (s service) AuthenticateUser(identity, password string) (string, error) {
 	var user *entities.CrUser
 
-	userWithEmail, err := s.repository.ReadUserByEmail(identity)
-	if err == nil {
-		user = userWithEmail
+	isValidEmail := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`).MatchString(identity)
+
+	if isValidEmail {
+		user, _ = s.repository.ReadUserByEmail(identity)
+	} else {
+		user, _ = s.repository.ReadUserByUsername(identity)
 	}
 
-	userWithUsername, err := s.repository.ReadUserByUsername(identity)
-	if err == nil {
-		user = userWithUsername
-	}
-
-	if userWithEmail == nil && userWithUsername == nil {
+	if user == nil {
 		return "", errors.New("user not found")
 	}
 
@@ -81,9 +62,17 @@ func (s service) AuthenticateUser(identity, password string) (string, error) {
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = user.Username
 	claims["user_id"] = user.ID
-	claims["role_id"] = user.RoleID
+	claims["username"] = user.Username
+	claims["email"] = user.Email
+	claims["sex"] = user.Sex
+	claims["status"] = user.Status
+	claims["phone"] = user.Phone
+	claims["avatar"] = user.Avatar
+	claims["role_id"] = user.Role.ID
+	claims["role_name"] = user.Role.Name
+	claims["team_id"] = user.Team.ID
+	claims["team_name"] = user.Team.Name
 	claims["permissions"] = permissions
 	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
@@ -95,58 +84,52 @@ func (s service) AuthenticateUser(identity, password string) (string, error) {
 	return t, nil
 }
 
-func (s service) InsertUser(user *entities.CrUser) (*entities.CrUserResp, error) {
-	hashPass, err := s.hashPassword(user.Password)
-	if err != nil {
-		return nil, err
-	}
-	user.Password = hashPass
-
-	createUser, err := s.repository.CreateUser(user)
-	if err != nil {
-		return nil, err
+func (s service) FetchProfile(user interface{}) (*jwt.MapClaims, error) {
+	token, ok := user.(*jwt.Token)
+	if !ok {
+		return nil, errors.New("invalid token")
 	}
 
-	response := createUser.ToResponse()
-	return &response, nil
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+
+	return &claims, nil
 }
 
-func (s service) FetchAllUser(page, limit int) (*[]entities.CrUserResp, int64, error) {
-	users, count, err := s.repository.ReadUser(page, limit)
-	if err != nil {
-		return nil, 0, err
+func (s service) UpdateProfile(user interface{}, password string, payload *entities.CrUser) (*entities.CrUser, error) {
+	token, ok := user.(*jwt.Token)
+	if !ok {
+		return nil, errors.New("invalid token")
 	}
 
-	var results []entities.CrUserResp
-	for _, item := range *users {
-		results = append(results, item.ToResponse())
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
 	}
 
-	return &results, count, nil
-}
-
-func (s service) FetchDetailUser(ID uint) (*entities.CrUserResp, error) {
-	user, err := s.repository.ReadUserByID(ID)
-	if err != nil {
-		return nil, err
+	userID, ok := claims["user_id"].(uint)
+	if !ok {
+		return nil, errors.New("invalid user ID")
 	}
-	response := user.ToResponse()
-	return &response, nil
-}
 
-func (s service) UpdateUser(ID uint, user *entities.CrUser) (*entities.CrUserResp, error) {
-	oldUser, err := s.repository.ReadUserByID(ID)
+	item, err := s.repository.ReadUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	if oldUser.Avatar != "" {
-		if err = os.Remove(oldUser.Avatar); err != nil {
+	if item.Avatar != "" {
+		if err = os.Remove(item.Avatar); err != nil {
 			return nil, err
 		}
 	}
 
-	updateUser, err := s.repository.UpdateUser(oldUser, user)
+	if !s.checkPasswordHash(password, item.Password) {
+		return nil, errors.New("invalid password")
+	}
+
+	updateUser, err := s.repository.UpdateUser(item, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +138,67 @@ func (s service) UpdateUser(ID uint, user *entities.CrUser) (*entities.CrUserRes
 	return &response, nil
 }
 
-func (s service) UpdateUserPassword(ID uint, oldPassword, newPassword string) (*entities.CrUserResp, error) {
+func (s service) InsertUser(payload *entities.CrUser) (*entities.CrUser, error) {
+	hashPass, err := s.hashPassword(payload.Password)
+	if err != nil {
+		return nil, err
+	}
+	payload.Password = hashPass
+
+	createUser, err := s.repository.CreateUser(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	response := createUser.ToResponse()
+	return &response, nil
+}
+
+func (s service) FetchAllUser(page, limit int) (*[]entities.CrUser, int64, error) {
+	users, count, err := s.repository.ReadUser(page, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var results []entities.CrUser
+	for _, item := range *users {
+		results = append(results, item.ToResponse())
+	}
+
+	return &results, count, nil
+}
+
+func (s service) FetchDetailUser(ID uint) (*entities.CrUser, error) {
+	user, err := s.repository.ReadUserByID(ID)
+	if err != nil {
+		return nil, err
+	}
+	response := user.ToResponse()
+	return &response, nil
+}
+
+func (s service) UpdateUser(ID uint, payload *entities.CrUser) (*entities.CrUser, error) {
+	user, err := s.repository.ReadUserByID(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Avatar != "" {
+		if err = os.Remove(user.Avatar); err != nil {
+			return nil, err
+		}
+	}
+
+	updateUser, err := s.repository.UpdateUser(user, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	response := updateUser.ToResponse()
+	return &response, nil
+}
+
+func (s service) UpdateUserPassword(ID uint, oldPassword, newPassword string) (*entities.CrUser, error) {
 	user, err := s.repository.ReadUserByID(ID)
 	if err != nil {
 		return nil, err

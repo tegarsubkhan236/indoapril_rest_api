@@ -3,7 +3,7 @@ package ms_stock
 import (
 	"errors"
 	"example/internal/pkg/entities"
-	"example/internal/pkg/util"
+	"example/internal/pkg/types/stock_status"
 	"gorm.io/gorm"
 )
 
@@ -23,32 +23,48 @@ func NewRepo(db *gorm.DB) Repository {
 }
 
 func (r repository) CreateStock(typeStock int, userID, ProductID uint, Quantity int) error {
-	var stockPayload entities.MsStock
-	lastStock, errLastStock := r.ReadLastStock(ProductID)
-	if errLastStock != nil {
-		return errLastStock
+	if typeStock != stock_status.INCREMENT && typeStock != stock_status.DECREMENT {
+		return errors.New("invalid typeStock")
 	}
-	if typeStock == util.Increment {
+
+	if Quantity <= 0 {
+		return errors.New("quantity must be a positive integer")
+	}
+
+	var stockPayload entities.MsStock
+	lastStock, err := r.ReadLastStock(ProductID)
+	if err != nil {
+		return err
+	}
+
+	if typeStock == stock_status.INCREMENT {
 		stockPayload = entities.MsStock{
 			MsProductID: ProductID,
 			CoreUserID:  userID,
 			Quantity:    Quantity,
-			Type:        util.Increment,
+			Type:        stock_status.INCREMENT,
 			Total:       lastStock + Quantity,
 		}
 	}
-	if typeStock == util.Decrement {
+
+	if typeStock == stock_status.DECREMENT {
 		stockPayload = entities.MsStock{
 			MsProductID: ProductID,
 			CoreUserID:  userID,
 			Quantity:    Quantity,
-			Type:        util.Decrement,
+			Type:        stock_status.DECREMENT,
 			Total:       lastStock - Quantity,
 		}
 	}
+
+	if stockPayload.Total < 0 {
+		return errors.New("the result of the total stock cannot be negative")
+	}
+
 	if errCreate := r.DB.Create(&stockPayload).Error; errCreate != nil {
 		return errCreate
 	}
+
 	return nil
 }
 

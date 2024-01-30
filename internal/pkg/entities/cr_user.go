@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// CrUser act as table, request body, response body
 type CrUser struct {
 	ID        uint           `json:"id" gorm:"primary_key"`
 	Username  string         `json:"username" gorm:"type:varchar(32);index,unique;not null"`
@@ -14,26 +15,14 @@ type CrUser struct {
 	Phone     string         `json:"phone" gorm:"type:varchar(32)"`
 	Status    int            `json:"status" gorm:"type:tinyint"`
 	TeamID    uint           `json:"team_id" gorm:"index"`
-	Team      CrTeam         `json:"-" gorm:"foreignKey:TeamID"`
 	RoleID    uint           `json:"role_id" gorm:"index"`
-	Role      CrRole         `json:"-" gorm:"foreignKey:RoleID"`
 	Avatar    string         `json:"avatar" gorm:"type:varchar(255)"`
+	Team      CrTeam         `json:"team" gorm:"foreignKey:TeamID"`
+	Role      CrRole         `json:"role" gorm:"foreignKey:RoleID"`
 	Password  string         `json:"-" gorm:"type:varchar(100);not null"`
 	CreatedAt time.Time      `json:"-" gorm:"autoCreateTime"`
 	UpdatedAt time.Time      `json:"-" gorm:"autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
-}
-
-type CrUserResp struct {
-	ID       uint       `json:"id"`
-	Username string     `json:"username"`
-	Email    string     `json:"email"`
-	Sex      int        `json:"sex"`
-	Phone    string     `json:"phone"`
-	Status   int        `json:"status"`
-	Avatar   string     `json:"avatar"`
-	Team     CrTeamResp `json:"team"`
-	Role     CrRoleResp `json:"role"`
 }
 
 func (r CrUser) ValidateInput() error {
@@ -67,8 +56,8 @@ func (r CrUser) ValidateInput() error {
 	return nil
 }
 
-func (r CrUser) ToResponse() CrUserResp {
-	item := CrUserResp{
+func (r CrUser) ToResponse() CrUser {
+	item := CrUser{
 		ID:       r.ID,
 		Username: r.Username,
 		Email:    r.Email,
@@ -76,17 +65,17 @@ func (r CrUser) ToResponse() CrUserResp {
 		Phone:    r.Phone,
 		Avatar:   r.Avatar,
 		Status:   r.Status,
-		Team: CrTeamResp{
+		Team: CrTeam{
 			ID:   r.Team.ID,
 			Name: r.Team.Name,
 		},
-		Role: CrRoleResp{
+		Role: CrRole{
 			ID:   r.Role.ID,
 			Name: r.Role.Name,
 		},
 	}
 	for _, permission := range r.Role.Permissions {
-		item.Role.Permissions = append(item.Role.Permissions, CrPermissionResp{
+		item.Role.Permissions = append(item.Role.Permissions, CrPermission{
 			ID:       permission.ID,
 			ParentID: permission.ParentID,
 			Name:     permission.Name,

@@ -6,6 +6,7 @@ import (
 )
 
 type Repository interface {
+	BeginTransaction() *gorm.DB
 	CreateReceivingOrder(data entities.TrReceivingOrder) error
 }
 
@@ -17,6 +18,11 @@ func NewRepo(db *gorm.DB) Repository {
 	return &repository{
 		DB: db,
 	}
+}
+
+func (r repository) BeginTransaction() *gorm.DB {
+	tx := r.DB.Begin()
+	return tx
 }
 
 func (r repository) CreateReceivingOrder(data entities.TrReceivingOrder) error {

@@ -4,7 +4,8 @@ import (
 	"example/internal/pkg/entities"
 	"example/internal/pkg/models/ms_product_price"
 	"example/internal/pkg/models/ms_stock"
-	"example/internal/pkg/util"
+	"example/internal/pkg/types/stock_status"
+	"example/internal/pkg/util/counter"
 	"fmt"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ func (s service) Insert(req entities.TrSalesOrderReq) (*entities.TrSalesOrderRes
 		quantities = append(quantities, val.Quantity)
 	}
 
-	amount, err := util.CountAmount(req.Tax, req.Disc, prices, quantities)
+	amount, err := counter.CountAmount(req.Tax, req.Disc, prices, quantities)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func (s service) decrementStock(products []entities.TrSalesOrderProductReq, user
 	var errString []string
 
 	for _, val := range products {
-		if err := s.stockRepo.CreateStock(util.Decrement, userID, val.ProductID, val.Quantity); err != nil {
+		if err := s.stockRepo.CreateStock(stock_status.DECREMENT, userID, val.ProductID, val.Quantity); err != nil {
 			errString = append(errString, err.Error())
 		}
 	}

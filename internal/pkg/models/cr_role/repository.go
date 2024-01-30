@@ -6,10 +6,10 @@ import (
 )
 
 type Repository interface {
-	Create(payload *entities.CrRole) error
+	Create(payload *entities.CrRoleReq) error
 	ReadAll(page, limit int) (*[]entities.CrRole, int64, error)
 	ReadByID(ID uint) (*entities.CrRole, error)
-	Update(item *entities.CrRole, payload *entities.CrRole) error
+	Update(item *entities.CrRole, payload *entities.CrRoleReq) error
 	Delete(ID uint) error
 }
 
@@ -23,7 +23,7 @@ func NewRepo(db *gorm.DB) Repository {
 	}
 }
 
-func (r repository) Create(payload *entities.CrRole) error {
+func (r repository) Create(payload *entities.CrRoleReq) error {
 	var tx = r.DB.Begin()
 
 	defer func() {
@@ -33,9 +33,9 @@ func (r repository) Create(payload *entities.CrRole) error {
 	}()
 
 	var permissions []entities.CrPermission
-	for _, permission := range payload.Permissions {
+	for _, permissionID := range payload.PermissionIds {
 		var p entities.CrPermission
-		if err := r.DB.First(&p, permission.ID).Error; err != nil {
+		if err := r.DB.First(&p, permissionID).Error; err != nil {
 			return err
 		}
 		permissions = append(permissions, p)
@@ -90,7 +90,7 @@ func (r repository) ReadByID(ID uint) (*entities.CrRole, error) {
 	return &item, nil
 }
 
-func (r repository) Update(item *entities.CrRole, payload *entities.CrRole) error {
+func (r repository) Update(item *entities.CrRole, payload *entities.CrRoleReq) error {
 	var tx = r.DB.Begin()
 
 	defer func() {
@@ -100,9 +100,9 @@ func (r repository) Update(item *entities.CrRole, payload *entities.CrRole) erro
 	}()
 
 	var permissions []entities.CrPermission
-	for _, permission := range payload.Permissions {
+	for _, permissionID := range payload.PermissionIds {
 		var p entities.CrPermission
-		if err := r.DB.First(&p, permission.ID).Error; err != nil {
+		if err := r.DB.First(&p, permissionID).Error; err != nil {
 			return err
 		}
 		permissions = append(permissions, p)

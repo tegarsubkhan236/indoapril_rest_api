@@ -48,6 +48,9 @@ func (r repository) ReadAll(page, limit int) (*[]entities.CrPermission, int64, e
 
 func (r repository) ReadByID(ID uint) (*entities.CrPermission, error) {
 	var item entities.CrPermission
+
+	r.DB = r.DB.Preload("Children").Preload("Children.Children")
+
 	if err := r.DB.First(&item, ID).Error; err != nil {
 		return nil, err
 	}

@@ -16,15 +16,15 @@ func SetupTransactionRoutes(
 	trSalesOrderService tr_sales_order.Service,
 ) {
 	purchaseOrderRoute := api.Group("/v1/transaction/purchase_order", middleware.Protected())
-	purchaseOrderRoute.Get("/", handlers.GetPurchaseOrders(trPurchaseOrderService))
-	purchaseOrderRoute.Get("/detail", handlers.GetPurchaseOrder(trPurchaseOrderService))
-	purchaseOrderRoute.Post("/", handlers.CreatePurchaseOrder(trPurchaseOrderService))
+	purchaseOrderRoute.Get("/", handlers.HandleGetPurchaseOrders(trPurchaseOrderService))
+	purchaseOrderRoute.Get("/detail", handlers.HandleGetPurchaseOrder(trPurchaseOrderService))
+	purchaseOrderRoute.Post("/", handlers.HandleAddPurchaseOrder(trPurchaseOrderService))
 
 	receivingOrderRoute := api.Group("/v1/transaction/receiving_order", middleware.Protected())
-	receivingOrderRoute.Post("/", handlers.CreateReceivingOrder(trReceivingOrderService))
+	receivingOrderRoute.Post("/", handlers.HandleAddReceivingOrder(trReceivingOrderService))
 
 	salesOrderRoute := api.Group("/v1/transaction/sales_order", middleware.Protected())
-	salesOrderRoute.Get("/", handlers.GetSalesOrders(trSalesOrderService))
-	salesOrderRoute.Get("/:id", handlers.GetSalesOrder(trSalesOrderService))
-	salesOrderRoute.Post("/", handlers.CreateSalesOrder(trSalesOrderService))
+	salesOrderRoute.Get("/", handlers.HandleGetSalesOrders(trSalesOrderService))
+	salesOrderRoute.Get("/:id", handlers.HandleGetSalesOrder(trSalesOrderService))
+	salesOrderRoute.Post("/", handlers.HandleAddSalesOrder(trSalesOrderService))
 }

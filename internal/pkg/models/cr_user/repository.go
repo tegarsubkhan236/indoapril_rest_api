@@ -75,7 +75,7 @@ func (r repository) ReadUserByEmail(email string) (*entities.CrUser, error) {
 	r.DB = r.DB.Preload("Role.Permissions")
 
 	if err := r.DB.Where("email = ?", email).First(&item).Error; err != nil {
-		return nil, err
+		return nil, nil
 	}
 
 	return &item, nil
@@ -84,8 +84,10 @@ func (r repository) ReadUserByEmail(email string) (*entities.CrUser, error) {
 func (r repository) ReadUserByUsername(username string) (*entities.CrUser, error) {
 	var item entities.CrUser
 
+	r.DB = r.DB.Preload("Role")
+	r.DB = r.DB.Preload("Role.Permissions")
 	if err := r.DB.Where("username = ?", username).First(&item).Error; err != nil {
-		return nil, err
+		return nil, nil
 	}
 
 	return &item, nil

@@ -1,4 +1,4 @@
-package constant
+package permissions
 
 //goland:noinspection ALL
 const (
@@ -19,4 +19,10 @@ const (
 	READ_USER   = "read_user"
 	UPDATE_USER = "update_user"
 	DELETE_USER = "delete_user"
+
+	MANAGE_TEAM = "manage_team"
+	CREATE_TEAM = "create_team"
+	READ_TEAM   = "read_team"
+	UPDATE_TEAM = "update_team"
+	DELETE_TEAM = "delete_team"
 )

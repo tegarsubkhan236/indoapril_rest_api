@@ -6,8 +6,8 @@ import (
 
 type Service interface {
 	Insert(payload *entities.CrPermission) error
-	FetchAll(page, limit int) (*[]entities.CrPermissionResp, int64, error)
-	FetchDetail(ID uint) (*entities.CrPermissionResp, error)
+	FetchAll(page, limit int) (*[]entities.CrPermission, int64, error)
+	FetchDetail(ID uint) (*entities.CrPermission, error)
 	Update(ID uint, payload *entities.CrPermission) error
 	Delete(ID uint) error
 }
@@ -26,13 +26,12 @@ func (s service) Insert(payload *entities.CrPermission) error {
 	return s.repository.Create(payload)
 }
 
-func (s service) FetchAll(page, limit int) (*[]entities.CrPermissionResp, int64, error) {
+func (s service) FetchAll(page, limit int) (*[]entities.CrPermission, int64, error) {
 	permissions, count, err := s.repository.ReadAll(page, limit)
 	if err != nil {
 		return nil, 0, err
 	}
-
-	var results []entities.CrPermissionResp
+	var results []entities.CrPermission
 	for _, item := range *permissions {
 		results = append(results, item.ToResponse())
 	}
@@ -40,12 +39,13 @@ func (s service) FetchAll(page, limit int) (*[]entities.CrPermissionResp, int64,
 	return &results, count, nil
 }
 
-func (s service) FetchDetail(ID uint) (*entities.CrPermissionResp, error) {
-	payload, err := s.repository.ReadByID(ID)
+func (s service) FetchDetail(ID uint) (*entities.CrPermission, error) {
+	permission, err := s.repository.ReadByID(ID)
 	if err != nil {
 		return nil, err
 	}
-	response := payload.ToResponse()
+
+	response := permission.ToResponse()
 
 	return &response, nil
 }

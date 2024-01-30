@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreateReceivingOrder(service tr_receiving_order.Service) fiber.Handler {
+func HandleAddReceivingOrder(service tr_receiving_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req entities.TrReceivingOrderReq
 		if err := c.BodyParser(&req); err != nil {

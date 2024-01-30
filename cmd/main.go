@@ -36,7 +36,7 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
-		AllowOrigins:     "http://localhost:4000",
+		AllowOrigins:     "http://localhost:3000",
 		AllowHeaders:     "Authorization, Content-Type",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 	}))
@@ -50,6 +50,8 @@ func main() {
 	setupCoreService(db, api)
 	setupMasterService(db, api)
 	setupTransactionService(db, api)
+
+	setupExampleService(db, api)
 
 	// Start App
 	log.Fatal(app.Listen(pkg.GetEnv("APP_PORT")))
@@ -75,6 +77,10 @@ func connectDB() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func setupExampleService(db *gorm.DB, api fiber.Router) {
+	routes.SetupExampleRoutes(db, api)
 }
 
 func setupAuthService(db *gorm.DB, api fiber.Router) {

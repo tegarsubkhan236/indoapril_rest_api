@@ -1,41 +1,39 @@
 package entities
 
-// CrRole act as table and request body
+// CrRole act as table and response body
 type CrRole struct {
 	ID          uint           `json:"id" gorm:"primary_key"`
 	ParentID    *uint          `json:"parent_id" gorm:"index"`
 	Name        string         `json:"name" gorm:"size:64;not null"`
-	Children    []CrRole       `json:"-" gorm:"foreignkey:ParentID"`
+	Children    []CrRole       `json:"children" gorm:"foreignkey:ParentID"`
 	Users       []CrUser       `json:"users" gorm:"foreignKey:RoleID"`
 	Permissions []CrPermission `json:"permissions" gorm:"many2many:cr_role_permissions"`
 }
 
-// CrRoleResp act as response body
-type CrRoleResp struct {
-	ID          uint               `json:"id"`
-	ParentID    *uint              `json:"parent_id,omitempty"`
-	Name        string             `json:"name"`
-	Children    []CrRoleResp       `json:"children,omitempty"`
-	Users       []CrUserResp       `json:"users,omitempty"`
-	Permissions []CrPermissionResp `json:"permissions,omitempty"`
+// CrRoleReq act as request body
+type CrRoleReq struct {
+	ID            uint   `json:"id"`
+	ParentID      *uint  `json:"parent_id"`
+	Name          string `json:"name"`
+	PermissionIds []int  `json:"permissions_ids"`
 }
 
-func (r CrRole) ToResponse() CrRoleResp {
-	role := CrRoleResp{
+func (r CrRole) ToResponse() CrRole {
+	role := CrRole{
 		ID:       r.ID,
 		ParentID: r.ParentID,
 		Name:     r.Name,
 	}
 
 	for _, permission := range r.Permissions {
-		role.Permissions = append(role.Permissions, CrPermissionResp{
+		role.Permissions = append(role.Permissions, CrPermission{
 			ID:   permission.ID,
 			Name: permission.Name,
 		})
 	}
 
 	for _, user := range r.Users {
-		role.Users = append(role.Users, CrUserResp{
+		role.Users = append(role.Users, CrUser{
 			ID:       user.ID,
 			Username: user.Username,
 			Email:    user.Email,

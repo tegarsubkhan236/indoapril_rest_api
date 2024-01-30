@@ -4,7 +4,7 @@ import (
 	"errors"
 	"example/internal/pkg/entities"
 	"example/internal/pkg/models/tr_back_order"
-	"example/internal/pkg/util"
+	"example/internal/pkg/util/counter"
 	"fmt"
 	"time"
 )
@@ -43,7 +43,7 @@ func (s service) Insert(payload entities.TrPurchaseOrderReq) (*entities.TrPurcha
 		prices = append(prices, val.Price)
 		quantities = append(quantities, val.Quantity)
 	}
-	payload.Amount, _ = util.CountAmount(payload.Tax, payload.Disc, prices, quantities)
+	payload.Amount, _ = counter.CountAmount(payload.Tax, payload.Disc, prices, quantities)
 
 	item, err := s.poRepo.Create(payload.ToModel())
 	if err != nil {

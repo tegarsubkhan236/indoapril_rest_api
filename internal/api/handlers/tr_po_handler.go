@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func GetPurchaseOrders(service tr_purchase_order.Service) fiber.Handler {
+func HandleGetPurchaseOrders(service tr_purchase_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `query:"page" default:"1"`
@@ -30,7 +30,7 @@ func GetPurchaseOrders(service tr_purchase_order.Service) fiber.Handler {
 	}
 }
 
-func GetPurchaseOrder(service tr_purchase_order.Service) fiber.Handler {
+func HandleGetPurchaseOrder(service tr_purchase_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			PoCode *string `query:"po_code"`
@@ -56,7 +56,7 @@ func GetPurchaseOrder(service tr_purchase_order.Service) fiber.Handler {
 	}
 }
 
-func CreatePurchaseOrder(service tr_purchase_order.Service) fiber.Handler {
+func HandleAddPurchaseOrder(service tr_purchase_order.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req entities.TrPurchaseOrderReq
 		if err := c.BodyParser(&req); err != nil {

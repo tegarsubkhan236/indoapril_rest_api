@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetProducts(service ms_product.Service) fiber.Handler {
+func HandleGetProducts(service ms_product.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page              int    `query:"page" default:"1"`
@@ -34,7 +34,7 @@ func GetProducts(service ms_product.Service) fiber.Handler {
 	}
 }
 
-func GetProduct(service ms_product.Service) fiber.Handler {
+func HandleGetProduct(service ms_product.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -55,7 +55,7 @@ func GetProduct(service ms_product.Service) fiber.Handler {
 	}
 }
 
-func CreateProduct(service ms_product.Service) fiber.Handler {
+func HandleAddProduct(service ms_product.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req []entities.MsProductReq
 		if err := c.BodyParser(&req); err != nil {
@@ -81,7 +81,7 @@ func CreateProduct(service ms_product.Service) fiber.Handler {
 	}
 }
 
-func UpdateProduct(service ms_product.Service) fiber.Handler {
+func HandleUpdateProduct(service ms_product.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -111,7 +111,7 @@ func UpdateProduct(service ms_product.Service) fiber.Handler {
 	}
 }
 
-func DeleteProduct(service ms_product.Service) fiber.Handler {
+func HandleRemoveProduct(service ms_product.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req struct {
 			ID []uint `query:"id"`

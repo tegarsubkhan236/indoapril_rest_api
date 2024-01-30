@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetRoles(service cr_role.Service) fiber.Handler {
+func HandleGetRoles(service cr_role.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var q struct {
 			Page  int `query:"page" default:"1"`
@@ -31,7 +31,7 @@ func GetRoles(service cr_role.Service) fiber.Handler {
 	}
 }
 
-func GetRole(service cr_role.Service) fiber.Handler {
+func HandleGetRole(service cr_role.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -50,9 +50,9 @@ func GetRole(service cr_role.Service) fiber.Handler {
 	}
 }
 
-func AddRole(service cr_role.Service) fiber.Handler {
+func HandleAddRole(service cr_role.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req entities.CrRole
+		var req entities.CrRoleReq
 		if err := c.BodyParser(&req); err != nil {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(response.ErrorResponse(err))
@@ -68,7 +68,7 @@ func AddRole(service cr_role.Service) fiber.Handler {
 	}
 }
 
-func UpdateRole(service cr_role.Service) fiber.Handler {
+func HandleUpdateRole(service cr_role.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
@@ -76,7 +76,7 @@ func UpdateRole(service cr_role.Service) fiber.Handler {
 			return c.JSON(response.ErrorResponse(err))
 		}
 
-		var req entities.CrRole
+		var req entities.CrRoleReq
 		if err = c.BodyParser(&req); err != nil {
 			c.Status(http.StatusBadRequest)
 			return c.JSON(response.ErrorResponse(err))
@@ -92,7 +92,7 @@ func UpdateRole(service cr_role.Service) fiber.Handler {
 	}
 }
 
-func RemoveRole(service cr_role.Service) fiber.Handler {
+func HandleRemoveRole(service cr_role.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := request.IdParam(c)
 		if err != nil {
